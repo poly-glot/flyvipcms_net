@@ -1,0 +1,14 @@
+@model PortalProfile
+@{
+    ViewData["Title"] = "Profile";
+    ViewData["Subtitle"] = Model.ReadOnly ? "View only. Your primary member manages these details." : "Keep your contact and travel documents current.";
+}
+<form class="form" method="post" action="/portal/profile" asp-antiforgery="true">
+    <fieldset class="form-section--plain form" disabled="@Model.ReadOnly">
+        <partial name="partials/profile_fields" model="Model.Form" />
+    </fieldset>
+    @if (!Model.ReadOnly)
+    {
+        <div class="form-actions"><button class="button" type="submit">Save profile</button></div>
+    }
+</form>

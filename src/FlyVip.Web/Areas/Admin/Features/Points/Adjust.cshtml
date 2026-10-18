@@ -1,0 +1,22 @@
+@model PointsAdjustViewModel
+@{
+    ViewData["Title"] = "Add points";
+    ViewData["Subtitle"] = "Credit a member's balance outside the payment flow.";
+}
+<form class="form" method="post" action="/admin/points/adjust" asp-antiforgery="true">
+    <section class="form-section">
+        <div class="form-section__intro">
+            <h2>Adjustment</h2>
+            <p>The remark is stored in the ledger entry.</p>
+        </div>
+        <div class="fields">
+            <field asp-for="UserId" label="Member" type="select" items="Model.Members" class="field--full" required />
+            <field asp-for="Amount" label="Points" type="number" min="0.01" required step="0.01" />
+            <field asp-for="Remark" label="Remark" required />
+        </div>
+    </section>
+    <div class="form-actions">
+        <button class="button" type="submit">Add points</button>
+        <a class="button button--quiet" href="/admin/points">Cancel</a>
+    </div>
+</form>

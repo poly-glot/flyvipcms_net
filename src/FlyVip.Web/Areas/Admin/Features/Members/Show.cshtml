@@ -1,0 +1,166 @@
+@using FlyVip.Web.Data
+@model MemberPageViewModel
+@{
+    var detail = Model.Detail;
+    var fullName = detail.FullName;
+    var primary = detail.IsPrimary;
+    var addOpen = Model.Children.Count == 0 || ValidationErrors.For(ViewData, "username") != "";
+    ViewData["Title"] = fullName;
+    ViewData["Subtitle"] = $"{detail.MemberCode}, {detail.PlanName ?? "Sub-member"}";
+}
+@section actions {
+<a class="button button--quiet" href="/admin/members/@detail.UserId/edit"><icon name="pencil" class="icon icon--sm" />Edit</a>
+@if (primary)
+{
+    <a class="button" href="/admin/payments/new?user_id=@detail.UserId"><icon name="card" class="icon icon--sm" />Record payment</a>
+}
+}
+<div class="profile-head">
+    <avatar first="@detail.FirstName" last="@detail.LastName" size="avatar--lg" />
+    <div class="profile-head__who">
+        <p class="profile-head__name">@fullName <span class="pill pill--@Model.CurrentStatus">@Model.CurrentStatus</span></p>
+        <p class="muted">@detail.Email, @(detail.Cellphone ?? "no phone on file")</p>
+    </div>
+</div>
+
+<dl class="stats">
+    <div class="stats__cell">
+        <dt><icon name="star" class="icon icon--sm" />Points</dt>
+        <dd class="num">@UiPoints(Model.Balance)</dd>
+    </div>
+    <div class="stats__cell">
+        <dt><icon name="calendar" class="icon icon--sm" />Next payment due</dt>
+        <dd>@UiDate(detail.NextDueOn)</dd>
+    </div>
+    <div class="stats__cell">
+        <dt><icon name="layers" class="icon icon--sm" />Plan</dt>
+        <dd>@(detail.PlanName ?? "Sub-member")</dd>
+    </div>
+</dl>
+
+<div class="detail">
+    <div class="detail__main">
+        @if (primary)
+        {
+            @if (Model.Flights.Count == 0)
+            {
+                <section class="page-section">
+                    <div class="section-head"><h2>Reservations</h2></div>
+                    <partial name="partials/empty" model='new EmptyState("No flights yet", "Book a flight for this member and it will show up here.", "plane", "/admin/reservations/new", "New reservation")' />
+                </section>
+            }
+            else
+            {
+                <partial name="partials/flight_list" model="Model.Flights" />
+            }
+
+            <section class="page-section">
+                <div class="section-head">
+                    <h2>Points history</h2>
+                    <sparkline values="Model.Series" width="140" height="32" />
+                </div>
+                @if (Model.Ledger.Count == 0)
+                {
+                    <partial name="partials/empty" model='new EmptyState("No points movements", "Payments and bookings will build the ledger.", "star")' />
+                }
+                else
+                {
+                    <partial name="partials/ledger" model="Model.Ledger" />
+                }
+            </section>
+
+            <section class="page-section">
+                <div class="section-head"><h2>Payments</h2></div>
+                @if (Model.Payments.Count == 0)
+                {
+                    <partial name="partials/empty" model='new EmptyState("No payments recorded", "The joining fee activates the membership.", "card", $"/admin/payments/new?user_id={detail.UserId}", "Record payment")' />
+                }
+                else
+                {
+                    <div class="table-wrap">
+                        <table class="data">
+                            <thead><tr><th>Payment</th><th>Date</th><th>Type</th><th>Remark</th><th class="num">Amount</th></tr></thead>
+                            <tbody>
+                                @foreach (var payment in Model.Payments)
+                                {
+                                    <tr>
+                                        <td><a href="/admin/payments/@payment.Id">#@payment.Id</a></td>
+                                        <td>@UiDate(payment.PaidOn)</td>
+                                        <td><span class="pill pill--accent pill--plain">@EnumText.Of(payment.Type)</span></td>
+                                        <td>@payment.Remark</td>
+                                        <td class="num">@UiPoints(payment.Amount)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+
+            <section class="page-section">
+                <div class="section-head"><h2>Sub-members</h2></div>
+                @if (Model.Children.Count > 0)
+                {
+                    <ul class="rows">
+                        @foreach (var child in Model.Children)
+                        {
+                            <li>
+                                <a class="row row--person" href="/admin/members/@child.UserId">
+                                    <avatar first="@child.FirstName" last="@child.LastName" />
+                                    <span>
+                                        <span class="row__title">@child.FullName</span>
+                                        <span class="row__sub">@child.MemberCode, @child.Username</span>
+                                    </span>
+                                    <span class="pill pill--accent pill--plain">@child.ContactType</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
+                <details class="disclosure" open="@addOpen">
+                    <summary><icon name="plus" class="icon icon--sm" />Add sub-member</summary>
+                    <form class="form" method="post" action="/admin/members/@detail.UserId/sub-members" asp-antiforgery="true">
+                        <div class="fields">
+                            <field asp-for="FirstName" label="First name" required />
+                            <field asp-for="LastName" label="Last name" required />
+                            <field asp-for="Username" label="Username" required />
+                            <field asp-for="Email" label="Email" type="email" required />
+                            <field asp-for="Password" label="Password" type="password" autocomplete="new-password" required />
+                            <field asp-for="ContactTypeId" label="Relationship" type="select" items="Model.ContactTypes" />
+                        </div>
+                        <div class="form-actions"><button class="button" type="submit">Add sub-member</button></div>
+                    </form>
+                </details>
+            </section>
+        }
+    </div>
+
+    <aside class="detail__aside">
+        <section class="page-section">
+            <h2>Details</h2>
+            <dl class="facts">
+                <div><dt>Username</dt><dd>@detail.Username</dd></div>
+                <div><dt>Email</dt><dd>@detail.Email</dd></div>
+                <div><dt>Phone</dt><dd>@(detail.Cellphone ?? "—")</dd></div>
+                <div><dt>Company</dt><dd>@(detail.Company ?? "—")</dd></div>
+                <div><dt>Passport</dt><dd>@(detail.PassportNumber ?? "—")<br><span class="muted">Due @UiDate(detail.PassportDueOn)</span></dd></div>
+            </dl>
+        </section>
+
+        <section class="page-section">
+            <h2>Membership status</h2>
+            <form class="form" method="post" action="/admin/members/@detail.UserId/status" asp-antiforgery="true">
+                <segmented asp-for="CurrentStatus" name="status" legend="Status" items="MemberPageViewModel.StatusChoices" />
+                <div class="form-actions form-actions--bare"><button class="button button--quiet" type="submit">Update status</button></div>
+            </form>
+        </section>
+
+        <section class="page-section danger-zone">
+            <h2>Remove member</h2>
+            <p class="muted">Removes this member and their sub-members from the club.</p>
+            <form method="post" action="/admin/members/@detail.UserId/delete" data-confirm="This removes @fullName and every sub-member linked to them." data-confirm-title="Remove this member?" data-confirm-action="Remove member" asp-antiforgery="true">
+                <button class="button button--danger" type="submit"><icon name="trash" class="icon icon--sm" />Remove member</button>
+            </form>
+        </section>
+    </aside>
+</div>

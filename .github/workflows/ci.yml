@@ -1,0 +1,280 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  group: ci-${{ github.ref }}
+
+jobs:
+  quality:
+    env:
+      ConnectionStrings__Test: Server=127.0.0.1;Port=3306;Database=flyvip_test;User Id=root;Password=FlyVip!Dev2026
+    runs-on: ubuntu-24.04
+    services:
+      db:
+        env:
+          MYSQL_ROOT_PASSWORD: FlyVip!Dev2026
+        image: mysql:9
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval 5s
+          --health-retries 30
+          --health-timeout 5s
+        ports:
+          - 3306:3306
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v7
+        with:
+          cache: npm
+          node-version: '22'
+
+      - run: npm ci --no-audit --no-fund
+
+      - run: bash quality.sh
+
+  e2e:
+    env:
+      DB_HOST: 127.0.0.1
+      DB_NAME: flyvip_e2e
+      DB_PASS: FlyVip!Dev2026
+      DB_USER: root
+      E2E_BASE_URL: http://127.0.0.1:8080
+      IMAGE_BUDGET_BYTES: 28000000
+      RUN_APP: docker run --env DB_HOST --env DB_NAME --env DB_PASS --env DB_USER --network host
+    needs: quality
+    runs-on: ubuntu-24.04
+    services:
+      db:
+        env:
+          MYSQL_ROOT_PASSWORD: FlyVip!Dev2026
+        image: mysql:9
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval 5s
+          --health-retries 30
+          --health-timeout 5s
+        ports:
+          - 3306:3306
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-buildx-action@v4
+
+      - uses: docker/build-push-action@v7
+        with:
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          context: .
+          load: true
+          tags: flyvipcms-net:ci
+
+      - name: Save the image and enforce its size budget
+        run: |
+          docker save flyvipcms-net:ci | gzip > flyvipcms-net.tar.gz
+          size="$(wc -c < flyvipcms-net.tar.gz)"
+          echo "compressed image bytes: $size, budget bytes: $IMAGE_BUDGET_BYTES"
+          [ "$size" -le "$IMAGE_BUDGET_BYTES" ]
+
+      - name: Migrate and seed the database
+        run: |
+          $RUN_APP --rm flyvipcms-net:ci migrate
+          $RUN_APP --env ASPNETCORE_ENVIRONMENT=Development --rm flyvipcms-net:ci seed
+
+      - name: Start the server
+        run: |
+          $RUN_APP --detach --env SKIP_MIGRATIONS=1 --name app flyvipcms-net:ci
+          for _ in $(seq 1 60); do
+            curl --fail --silent --output /dev/null "$E2E_BASE_URL/health" && exit 0
+            sleep 1
+          done
+          exit 1
+
+      - env:
+          BASE_URL: ${{ env.E2E_BASE_URL }}
+          SMOKE_RESTART: >-
+            docker logs app >> app.log 2>&1;
+            docker rm --force app &&
+            $RUN_APP --detach --env SKIP_MIGRATIONS=1 --name app flyvipcms-net:ci
+        name: Smoke every page, then recreate the container and smoke the session
+        run: bash tests/smoke.sh
+
+      - uses: actions/setup-node@v7
+        with:
+          cache: npm
+          node-version: '22'
+
+      - run: npm ci --no-audit --no-fund
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm run test:e2e:running
+
+      - if: always()
+        name: Fail on exceptions in the container log
+        run: |
+          docker logs app >> app.log 2>&1
+          ! grep --line-number Exception app.log
+
+      - if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v7
+        with:
+          name: image
+          path: flyvipcms-net.tar.gz
+          retention-days: 1
+
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-report
+          path: |
+            app.log
+            playwright-report/
+            test-results/artifacts/
+          retention-days: 7
+
+  visual:
+    continue-on-error: true
+    env:
+      E2E_DB_SERVER: Server=127.0.0.1;Port=3306;User Id=root;Password=FlyVip!Dev2026
+    needs: quality
+    runs-on: ubuntu-24.04
+    services:
+      db:
+        env:
+          MYSQL_ROOT_PASSWORD: FlyVip!Dev2026
+        image: mysql:9
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval 5s
+          --health-retries 30
+          --health-timeout 5s
+        ports:
+          - 3306:3306
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v7
+        with:
+          cache: npm
+          node-version: '22'
+
+      - run: npm ci --no-audit --no-fund
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm run test:visual
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-screenshots
+          path: |
+            test-results/visual/
+          retention-days: 14
+
+  deploy:
+    concurrency:
+      cancel-in-progress: false
+      group: deploy
+    env:
+      EDGE_URL: https://flyvipcms-net.web.app
+      GCP_PROJECT: firebase-cloud-491613
+      GCP_REGION: europe-west2
+      IMAGE_REPO: europe-west2-docker.pkg.dev/firebase-cloud-491613/firebase-cloud/flyvipcms-net
+      JOB: flyvipcms-net-migrate
+      SERVICE: flyvipcms-net
+    if: github.ref == 'refs/heads/main'
+    needs: [quality, e2e]
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: google-github-actions/auth@v3
+        with:
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - run: gcloud auth configure-docker "$GCP_REGION-docker.pkg.dev" --quiet
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: image
+
+      - name: Push the image the e2e job tested
+        run: |
+          image="$IMAGE_REPO:${GITHUB_SHA::12}"
+          docker load --input flyvipcms-net.tar.gz
+          docker tag flyvipcms-net:ci "$image"
+          docker tag flyvipcms-net:ci "$IMAGE_REPO:latest"
+          docker push "$image"
+          docker push "$IMAGE_REPO:latest"
+          echo "IMAGE=$image" >> "$GITHUB_ENV"
+
+      - name: Migrate the database
+        run: |
+          gcloud run jobs update "$JOB" \
+            --image="$IMAGE" \
+            --project="$GCP_PROJECT" \
+            --quiet \
+            --region="$GCP_REGION"
+          gcloud run jobs execute "$JOB" \
+            --project="$GCP_PROJECT" \
+            --quiet \
+            --region="$GCP_REGION" \
+            --wait
+
+      - name: Deploy the candidate revision
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --image="$IMAGE" \
+            --no-traffic \
+            --project="$GCP_PROJECT" \
+            --quiet \
+            --region="$GCP_REGION" \
+            --tag=candidate
+
+      - name: Smoke the candidate revision
+        run: |
+          url="$(
+            gcloud run services describe "$SERVICE" \
+              --format=json \
+              --project="$GCP_PROJECT" \
+              --region="$GCP_REGION" |
+              jq --raw-output '.status.traffic[] | select(.tag == "candidate") | .url'
+          )"
+          test -n "$url"
+          SMOKE_ANONYMOUS=1 BASE_URL="$url" bash tests/smoke.sh
+
+      - name: Promote the candidate revision
+        run: |
+          gcloud run services update-traffic "$SERVICE" \
+            --project="$GCP_PROJECT" \
+            --quiet \
+            --region="$GCP_REGION" \
+            --to-latest
+
+      - name: Smoke the edge
+        run: SMOKE_ANONYMOUS=1 BASE_URL="$EDGE_URL" bash tests/smoke.sh

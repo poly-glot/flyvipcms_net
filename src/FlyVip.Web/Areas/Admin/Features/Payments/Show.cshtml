@@ -1,0 +1,23 @@
+@using FlyVip.Web.Data
+@model PaymentLine
+@{
+    var payment = Model;
+    ViewData["Title"] = $"Payment #{payment.Id}";
+    ViewData["Subtitle"] = UiDate(payment.PaidOn);
+}
+@section actions {
+<a class="button button--quiet" href="/admin/payments">Back to payments</a>
+}
+<section class="page-section receipt">
+    <div class="receipt__amount">
+        <span class="muted">Amount</span>
+        <strong class="num">@UiPoints(payment.Amount)</strong>
+        <span class="pill pill--accent pill--plain">@EnumText.Of(payment.Type)</span>
+    </div>
+    <dl class="facts">
+        <div><dt>Member</dt><dd><a href="/admin/members/@payment.UserId">@payment.FullName</a> <span class="muted">(@payment.MemberCode)</span></dd></div>
+        <div><dt>Paid on</dt><dd>@UiDate(payment.PaidOn)</dd></div>
+        <div><dt>Description</dt><dd>@payment.Description</dd></div>
+        <div><dt>Remark</dt><dd>@payment.Remark</dd></div>
+    </dl>
+</section>

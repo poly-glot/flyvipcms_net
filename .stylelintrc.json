@@ -1,0 +1,42 @@
+{
+    "extends": [
+        "stylelint-config-standard"
+    ],
+    "plugins": [
+        "stylelint-order",
+        "./tools/stylelint-no-comments.mjs"
+    ],
+    "rules": {
+        "color-no-hex": true,
+        "custom-property-pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+        "declaration-no-important": true,
+        "flyvip/no-comments": true,
+        "no-descending-specificity": null,
+        "order/properties-alphabetical-order": true,
+        "selector-class-pattern": [
+            "^[a-z][a-z0-9]*(-[a-z0-9]+)*(__[a-z0-9]+(-[a-z0-9]+)*)?(--[a-z0-9]+(-[a-z0-9]+)*)?$",
+            {
+                "message": "Class names are BEM kebab-case: block, block__element, block--modifier."
+            }
+        ],
+        "value-keyword-case": [
+            "lower",
+            {
+                "ignoreProperties": [
+                    "font-family"
+                ]
+            }
+        ]
+    },
+    "overrides": [
+        {
+            "files": [
+                "src/FlyVip.Web/wwwroot/css/tokens.css"
+            ],
+            "rules": {
+                "color-no-hex": null,
+                "declaration-no-important": null
+            }
+        }
+    ]
+}

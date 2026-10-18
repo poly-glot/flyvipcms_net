@@ -1,0 +1,29 @@
+@model IReadOnlyList<LedgerLine>
+<div class="ledger">
+    @foreach (var day in Model.GroupBy(line => line.CreatedAt?.Date))
+    {
+        <section class="ledger__day">
+            <h3 class="ledger__date">@UiDate(day.Key, "dddd d MMMM yyyy")</h3>
+            <ul class="rows">
+                @foreach (var line in day)
+                {
+                    var credit = line.IsCredit;
+                    <li class="row ledger__row">
+                        <span class="ledger__icon ledger__icon--@(credit ? "in" : "out")"><icon name="@(credit ? "credit" : "debit")" class="icon icon--sm" /></span>
+                        <span>
+                            <span class="row__title">@line.Description</span>
+                            @if (line.FirstName is not null)
+                            {
+                                <span class="row__sub">@line.FullName (@line.MemberCode)</span>
+                            }
+                        </span>
+                        <span class="ledger__figures">
+                            <strong class="num @(credit ? "pos" : "neg")">@UiSignedPoints(line.Amount)</strong>
+                            <small class="num muted">Balance @UiPoints(line.BalanceAfter)</small>
+                        </span>
+                    </li>
+                }
+            </ul>
+        </section>
+    }
+</div>

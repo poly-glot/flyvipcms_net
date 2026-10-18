@@ -1,0 +1,60 @@
+@using FlyVip.Web.Data
+@model PaymentIndexViewModel
+@{
+    var searching = Model.Search != "";
+    ViewData["Title"] = "Payments";
+    ViewData["Subtitle"] = searching ? $"{Model.Payments.Count} matching \"{Model.Search}\"" : "Latest payments across the club";
+}
+@section actions {
+<a class="button" href="/admin/payments/new"><icon name="plus" class="icon icon--sm" />Record payment</a>
+}
+<form class="toolbar" method="get" action="/admin/payments" role="search">
+    <div class="search-form">
+        <label class="search">
+            <span class="sr-only">Search payments</span>
+            <icon name="search" class="icon icon--sm" />
+            <input type="search" name="q" value="@Model.Search" placeholder="Member, code, remark or id">
+        </label>
+        <button class="button button--quiet" type="submit">Search</button>
+        @if (searching)
+        {
+            <a class="button button--quiet" href="/admin/payments">Clear</a>
+        }
+    </div>
+</form>
+
+@if (Model.Payments.Count == 0)
+{
+    <partial name="partials/empty" model='searching
+        ? new EmptyState("No payments match", "Check the spelling or search by member code.", "card", "/admin/payments/new", "Record payment")
+        : new EmptyState("No payments yet", "Recorded payments appear here with the points they credit.", "card", "/admin/payments/new", "Record payment")' />
+}
+else
+{
+    <div class="table-wrap">
+        <table class="data">
+            <thead>
+                <tr><th>Payment</th><th>Member</th><th class="hide-narrow">Code</th><th>Date</th><th>Type</th><th class="hide-narrow">Remark</th><th class="num">Amount</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var payment in Model.Payments)
+                {
+                    <tr>
+                        <td><a href="/admin/payments/@payment.Id">#@payment.Id</a></td>
+                        <td>
+                            <span class="cell-person">
+                                <avatar first="@payment.FirstName" last="@payment.LastName" size="avatar--sm" />
+                                @payment.FullName
+                            </span>
+                        </td>
+                        <td class="hide-narrow muted">@payment.MemberCode</td>
+                        <td class="nowrap">@UiDate(payment.PaidOn)</td>
+                        <td><span class="pill pill--accent pill--plain">@EnumText.Of(payment.Type)</span></td>
+                        <td class="hide-narrow muted">@payment.Remark</td>
+                        <td class="num">@UiPoints(payment.Amount)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

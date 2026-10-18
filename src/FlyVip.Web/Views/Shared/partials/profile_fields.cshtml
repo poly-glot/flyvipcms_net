@@ -1,0 +1,53 @@
+@model ProfileViewModel
+<section class="form-section">
+    <div class="form-section__intro">
+        <h2>Contact</h2>
+        <p>Who we speak to and how to reach them.</p>
+    </div>
+    <div class="fields">
+        @if (Model is NamedProfileViewModel named)
+        {
+            <field asp-for="@named.FirstName" label="First name" />
+            <field asp-for="@named.LastName" label="Last name" />
+        }
+        <field asp-for="Company" label="Company" />
+        <field asp-for="Cellphone" label="Cell phone" type="tel" />
+        <field asp-for="OfficePhone" label="Office phone" type="tel" />
+        <field asp-for="HomePhone" label="Home phone" type="tel" />
+        <field asp-for="SecondaryPhone" label="Secondary phone" type="tel" />
+    </div>
+</section>
+<section class="form-section">
+    <div class="form-section__intro">
+        <h2>Address</h2>
+        <p>Used for invoices and travel documents.</p>
+    </div>
+    <div class="fields">
+        <field asp-for="StreetAddress" label="Street address" />
+        <field asp-for="CountryId" label="Country" type="select" items="Model.Choices.Countries" blank="—" />
+        <field asp-for="ZoneId" label="State / region" type="select" items="Model.Choices.Zones" blank="—" />
+        <field asp-for="City" label="City" />
+        <field asp-for="ZipCode" label="Zip code" />
+    </div>
+</section>
+<section class="form-section">
+    <div class="form-section__intro">
+        <h2>Identity</h2>
+        <p>Needed to board. Keep expiry dates current.</p>
+    </div>
+    <div class="fields">
+        <field asp-for="IdNumber" label="ID number" />
+        <field asp-for="IdDueOn" label="ID due date" type="date" />
+        <field asp-for="PassportNumber" label="Passport number" />
+        <field asp-for="PassportIssuedOn" label="Passport issued" type="date" />
+        <field asp-for="PassportDueOn" label="Passport due" type="date" />
+    </div>
+</section>
+<section class="form-section">
+    <div class="form-section__intro">
+        <h2>Preferences</h2>
+    </div>
+    <div class="fields">
+        <field asp-for="FavouriteRouteId" label="Route of interest" type="select" items="Model.Choices.Routes" blank="—" />
+    </div>
+</section>

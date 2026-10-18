@@ -1,0 +1,68 @@
+@{
+    Layout = "_Base";
+    var isAdmin = User.IsInRole("admin");
+    var displayName = User.Identity?.Name ?? "";
+    var home = isAdmin ? "admin" : "portal";
+}
+<a class="sr-only" href="#main">Skip to content</a>
+<div class="shell">
+    <aside class="sidebar" id="sidebar" aria-label="Primary">
+        <div class="sidebar__top">
+            <a class="brand" href="/@home" title="FLY VIP">
+                <partial name="partials/brand_mark" />
+                <span class="brand__text">FLY VIP <small>@(isAdmin ? "ADMIN" : "MEMBER")</small></span>
+            </a>
+            <button class="icon-button sidebar__collapse" type="button" data-sidebar-collapse aria-label="Collapse sidebar" aria-pressed="false" title="Collapse sidebar"><icon name="collapse" /></button>
+            <button class="icon-button sidebar__close" type="button" data-sidebar-close aria-label="Close menu" hidden><icon name="x" /></button>
+        </div>
+        <nav class="nav" aria-label="Main">
+            @foreach (var group in UiNav(isAdmin))
+            {
+                <div class="nav__group">
+                    <span class="nav__label">@group.Label</span>
+                    @foreach (var item in group.Items)
+                    {
+                        <a class="nav__link" href="/@item.Path" title="@item.Label" aria-current="@(Html.UiIsCurrent(item.Path) ? "page" : null)">
+                            <icon name="@item.Icon" /><span class="nav__text">@item.Label</span>
+                        </a>
+                    }
+                </div>
+            }
+        </nav>
+        <div class="sidebar__user">
+            <avatar first="@displayName" />
+            <div class="sidebar__who">
+                <strong>@displayName</strong>
+                <a href="/account/password">Account</a>
+            </div>
+            <form class="sidebar__signout" method="post" action="/logout" asp-antiforgery="true">
+                <button class="icon-button" type="submit" aria-label="Sign out" title="Sign out"><icon name="logout" /></button>
+            </form>
+        </div>
+    </aside>
+    <div class="sidebar-backdrop" data-sidebar-backdrop></div>
+
+    <div class="stage">
+        <header class="stage__header">
+            <div class="stage__heading">
+                <button class="icon-button stage__menu" type="button" data-sidebar-open aria-controls="sidebar" aria-expanded="false" aria-label="Open menu"><icon name="menu" /></button>
+                <div>
+                    <h1>@ViewData["Title"]</h1>
+                    <p>@ViewData["Subtitle"]</p>
+                </div>
+            </div>
+            <div class="stage__actions">@await RenderSectionAsync("actions", required: false)</div>
+            <a class="stage__avatar" href="/account/password" aria-label="Account and password" title="@displayName"><avatar first="@displayName" /></a>
+        </header>
+
+        <main class="stage__body" id="main">
+            <div class="page">
+                <partial name="partials/error_summary" />
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+</div>
+@section scripts {
+    @await RenderSectionAsync("scripts", required: false)
+}

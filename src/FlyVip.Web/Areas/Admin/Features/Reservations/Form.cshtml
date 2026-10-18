@@ -1,0 +1,22 @@
+@model AdminBookingViewModel
+@{
+    ViewData["Title"] = "New reservation";
+    ViewData["Subtitle"] = "Book a flight on behalf of a member.";
+}
+<form class="form" method="post" action="/admin/reservations" asp-antiforgery="true">
+    <section class="form-section">
+        <div class="form-section__intro">
+            <h2>Member</h2>
+            <p>The member's points are charged when you book.</p>
+        </div>
+        <div class="fields">
+            <field asp-for="UserId" label="Member" type="select" items="Model.Members" class="field--full" required />
+        </div>
+    </section>
+    <partial name="partials/booking_fields" />
+    <div class="form-actions">
+        <button class="button" type="submit">Book flight</button>
+        <a class="button button--quiet" href="/admin/reservations">Cancel</a>
+    </div>
+</form>
+@section scripts {<script src="/js/seatmap.js" defer></script>}

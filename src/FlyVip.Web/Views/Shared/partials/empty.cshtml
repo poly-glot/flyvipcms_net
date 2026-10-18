@@ -1,0 +1,10 @@
+@model EmptyState
+<div class="empty">
+    <span class="empty__art"><icon name="@Model.Icon" class="icon icon--lg" /></span>
+    <h3>@Model.Title</h3>
+    <p>@Model.Text</p>
+    @if (Model.ActionUrl is not null)
+    {
+        <a class="button" href="@Model.ActionUrl"><icon name="plus" class="icon icon--sm" />@Model.ActionLabel</a>
+    }
+</div>

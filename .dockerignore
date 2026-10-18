@@ -1,0 +1,6 @@
+*
+!.editorconfig
+!Directory.Build.props
+!src/FlyVip.Web/
+**/bin
+**/obj

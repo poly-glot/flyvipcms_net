@@ -1,0 +1,17 @@
+@model IReadOnlyList<LedgerLine>
+@{
+    ViewData["Title"] = "Points history";
+    ViewData["Subtitle"] = "The 300 most recent movements across all members";
+}
+@section actions {
+<a class="button button--quiet" href="/admin/points/transfer"><icon name="swap" class="icon icon--sm" />Transfer</a>
+<a class="button" href="/admin/points/adjust"><icon name="plus" class="icon icon--sm" />Add points</a>
+}
+@if (Model.Count == 0)
+{
+    <partial name="partials/empty" model='new EmptyState("No points movements yet", "Payments, bookings, refunds and transfers will be listed here.", "star", "/admin/points/adjust", "Add points")' />
+}
+else
+{
+    <partial name="partials/ledger" />
+}

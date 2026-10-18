@@ -1,0 +1,149 @@
+.gate {
+    background: var(--panel);
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    min-height: 100dvh;
+}
+
+.gate__hero {
+    background:
+        radial-gradient(120% 80% at 80% 0%, var(--hero-start) 0%, transparent 60%),
+        linear-gradient(160deg, var(--hero-end) 0%, var(--night) 70%);
+    color: var(--on-hero);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    padding: var(--space-6) var(--space-7);
+    position: relative;
+}
+
+.brand--light,
+.brand--light:hover {
+    color: var(--white);
+    position: relative;
+    z-index: 1;
+}
+
+.brand--light .brand__mark rect {
+    fill: var(--white);
+}
+
+.brand--light .brand__mark path:first-of-type {
+    fill: var(--hero-end);
+}
+
+.brand--light .brand__mark path:last-of-type {
+    stroke: var(--white);
+}
+
+.gate__trails {
+    height: 100%;
+    inset: 0;
+    position: absolute;
+    width: 100%;
+}
+
+.gate__trails path {
+    fill: none;
+    stroke: var(--on-hero-accent);
+    stroke-linecap: round;
+    stroke-opacity: 0.35;
+    stroke-width: 1.5;
+}
+
+.gate__trails path:nth-child(2) {
+    stroke-opacity: 0.2;
+}
+
+.gate__trails path:nth-child(3) {
+    stroke-dasharray: 2 9;
+    stroke-opacity: 0.5;
+}
+
+.gate__trails circle {
+    fill: var(--white);
+    filter: drop-shadow(0 0 8px var(--on-hero-accent));
+}
+
+.gate__pitch {
+    max-width: 30ch;
+    position: relative;
+    z-index: 1;
+}
+
+.gate__pitch h2 {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 3.4vw, 3rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.gate__pitch p {
+    color: var(--on-hero-muted);
+    font-size: 1.0625rem;
+    margin-top: var(--space-4);
+    max-width: 36ch;
+}
+
+.gate__panel {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    padding: var(--space-6) var(--space-5);
+}
+
+.gate__form {
+    display: grid;
+    gap: var(--space-5);
+    max-width: 380px;
+    width: 100%;
+}
+
+.gate__heading {
+    display: grid;
+    gap: var(--space-2);
+}
+
+.gate__heading h1 {
+    font-size: 1.875rem;
+}
+
+.gate__note {
+    font-size: 0.8125rem;
+}
+
+.form-actions--bare {
+    border-top: 0;
+    padding-top: var(--space-5);
+}
+
+.button--block {
+    width: 100%;
+}
+
+.gate .summary {
+    margin-bottom: 0;
+}
+
+@media (width <= 860px) {
+    .gate {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto 1fr;
+    }
+
+    .gate__hero {
+        min-height: 200px;
+        padding: var(--space-5) var(--space-4);
+    }
+
+    .gate__pitch {
+        display: none;
+    }
+
+    .gate__panel {
+        align-items: flex-start;
+        padding-top: var(--space-6);
+    }
+}

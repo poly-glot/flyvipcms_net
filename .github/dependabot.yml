@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - directory: /
+    package-ecosystem: nuget
+    schedule:
+      interval: weekly
+  - directory: /
+    package-ecosystem: npm
+    schedule:
+      interval: weekly
+  - directory: /
+    package-ecosystem: github-actions
+    schedule:
+      interval: weekly
+  - directory: /
+    package-ecosystem: docker
+    schedule:
+      interval: weekly

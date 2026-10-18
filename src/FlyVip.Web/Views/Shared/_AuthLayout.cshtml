@@ -1,0 +1,26 @@
+@{
+    Layout = "_Base";
+}
+<div class="gate">
+    <section class="gate__hero" aria-label="FLY VIP">
+        <a class="brand brand--light" href="/">
+            <partial name="partials/brand_mark" />
+            <span class="brand__text">FLY VIP</span>
+        </a>
+        <svg class="gate__trails" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+            <path d="M-40 520C140 470 250 380 330 270S500 80 650 40"/>
+            <path d="M-40 580C160 540 290 450 380 340S540 150 660 120"/>
+            <path d="M-40 460C120 400 220 320 290 210S430 20 650-40"/>
+            <circle cx="518" cy="108" r="5"/>
+        </svg>
+        <div class="gate__pitch">
+            <h2>The sky at your fingertips.</h2>
+            <p>Enjoy the benefits of a friendly aircraft, whenever and wherever.</p>
+        </div>
+    </section>
+    <main class="gate__panel" id="main">
+        <div class="gate__form">
+            @RenderBody()
+        </div>
+    </main>
+</div>

@@ -1,0 +1,90 @@
+@using System.Globalization
+@using FlyVip.Web.Data
+@model ReservationDetail
+@{
+    var listing = Model.Listing;
+    ViewData["Title"] = $"Reservation #{listing.Id}";
+    ViewData["Subtitle"] = listing.FromName + " to " + listing.ToName;
+}
+@section actions {
+@if (Model.CanConfirm)
+{
+    <form method="post" action="/admin/reservations/@listing.Id/confirm" asp-antiforgery="true">
+        <button class="button" type="submit"><icon name="check" class="icon icon--sm" />Confirm</button>
+    </form>
+}
+@if (Model.CanCancel)
+{
+    <form method="post" action="/admin/reservations/@listing.Id/cancel" data-confirm="The member is refunded and the seats are released." data-confirm-title="Cancel this reservation?" data-confirm-action="Cancel reservation" asp-antiforgery="true">
+        <button class="button button--danger" type="submit">Cancel reservation</button>
+    </form>
+}
+}
+<partial name="partials/flight_card" model="Model.Card" />
+
+<div class="detail">
+    <div class="detail__main">
+        @if (Model.Joiners.Count > 0)
+        {
+            <section class="page-section">
+                <div class="section-head"><h2>Seat requests</h2></div>
+                <ul class="rows">
+                    @foreach (var joiner in Model.Joiners)
+                    {
+                        var status = EnumText.Of(joiner.Status);
+                        <li>
+                            <a class="row row--person" href="/admin/reservations/@joiner.Id">
+                                <avatar first="@(joiner.FirstName ?? "")" last="@(joiner.LastName ?? "")" />
+                                <span>
+                                    <span class="row__title">@joiner.FullName</span>
+                                    <span class="row__sub">@joiner.Passengers @UiPlural(joiner.Passengers, "seat"), @UiPoints(joiner.Amount) pts</span>
+                                </span>
+                                <span class="pill pill--@status">@status</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </section>
+        }
+
+        <section class="page-section">
+            <div class="section-head"><h2>Activity</h2></div>
+            @if (Model.Activity.Count == 0)
+            {
+                <partial name="partials/empty" model='new EmptyState("No activity yet", "Bookings, confirmations and refunds are logged here.", "clock")' />
+            }
+            else
+            {
+                <ol class="timeline">
+                    @foreach (var item in Model.Activity)
+                    {
+                        <li>
+                            <span>@item.Description</span>
+                            <time class="muted" datetime="@item.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)">@UiDate(item.CreatedAt, "d MMM yyyy, HH:mm")</time>
+                        </li>
+                    }
+                </ol>
+            }
+        </section>
+    </div>
+
+    <aside class="detail__aside">
+        <section class="page-section">
+            <h2>Seats</h2>
+            <div class="seatmap" data-seatmap data-capacity="@listing.Capacity" data-selected="@string.Join(',', Model.HeldSeats)">
+                <div class="cabin" data-seatmap-grid role="group" aria-label="Seat map"></div>
+                <p class="seatmap__status">Seats held: @(Model.Seats.Count == 0 ? "none" : string.Join(", ", Model.Seats))</p>
+            </div>
+        </section>
+        <section class="page-section">
+            <h2>Booked by</h2>
+            <dl class="facts">
+                <div><dt>Member</dt><dd><a href="/admin/members/@listing.UserId">@listing.FullName</a></dd></div>
+                <div><dt>Code</dt><dd>@listing.MemberCode</dd></div>
+                <div><dt>Passengers</dt><dd>@listing.Passengers</dd></div>
+                <div><dt>Charged</dt><dd class="num">@UiPoints(listing.Amount) pts</dd></div>
+            </dl>
+        </section>
+    </aside>
+</div>
+@section scripts {<script src="/js/seatmap.js" defer></script>}

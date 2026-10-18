@@ -1,0 +1,43 @@
+@{
+    var documentTitle = (ViewData["Title"] as string ?? "").Trim();
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>@(documentTitle != "" ? documentTitle + " · FLY VIP" : "FLY VIP")</title>
+    <script>
+        try {
+            if (localStorage.getItem('flyvip.sidebar') === 'collapsed') {
+                document.documentElement.dataset.sidebar = 'collapsed';
+            }
+        } catch (error) {}
+    </script>
+    @foreach (var sheet in new[] { "tokens", "ui", "shell", "auth", "people", "dashboard", "flights", "ledger" })
+    {
+        <link rel="stylesheet" href="/css/@(sheet).css">
+    }
+</head>
+<body>
+<partial name="partials/icons" />
+@RenderBody()
+<partial name="partials/flash" />
+<dialog class="dialog" id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+    <!form method="dialog">
+        <h2 id="confirm-title">Are you sure?</h2>
+        <p id="confirm-message"></p>
+        <div class="dialog__actions">
+            <button class="button button--quiet" value="cancel">Keep it</button>
+            <button class="button button--danger" value="confirm" id="confirm-accept">Confirm</button>
+        </div>
+    </!form>
+</dialog>
+@foreach (var script in new[] { "shell", "toast", "confirm", "forms", "filter" })
+{
+    <script src="/js/@(script).js" defer></script>
+}
+@await RenderSectionAsync("scripts", required: false)
+</body>
+</html>

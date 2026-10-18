@@ -1,0 +1,34 @@
+@model BookingViewModel
+@{
+    IEnumerable<KeyValuePair<string, string>> kinds = [new("partial", "Partial"), new("complete", "Complete")];
+}
+<section class="form-section">
+    <div class="form-section__intro">
+        <h2>Flight</h2>
+        <p>Pick the route, the aircraft and the day you want to fly.</p>
+    </div>
+    <div class="fields">
+        <field asp-for="RouteId" label="Route" type="select" items="Model.Routes" class="field--full" required />
+        <field asp-for="AircraftId" label="Aircraft" type="select" items="Model.Aircrafts" data-capacities="@Model.Capacities" required />
+        <field asp-for="FlightDate" label="Flight date" type="date" min="@Model.EarliestFlightDate" required />
+    </div>
+</section>
+<section class="form-section">
+    <div class="form-section__intro">
+        <h2>Seats</h2>
+        <p>Complete takes the whole aircraft. Partial shares it, and you choose your seats.</p>
+    </div>
+    <div class="booking-seats">
+        <segmented asp-for="KindChoice" name="kind" legend="Reservation type" items="kinds" />
+        <p class="booking-seats__note" data-complete-note hidden>Every seat on this aircraft is reserved for you and your guests.</p>
+        <div class="seatmap" data-seatmap data-url="/flights/taken-seats" data-selected="@string.Join(',', Model.Seats)">
+            <div class="seatmap__legend" aria-hidden="true">
+                <span><i class="seat-key"></i>Available</span>
+                <span><i class="seat-key seat-key--selected"></i>Yours</span>
+                <span><i class="seat-key seat-key--taken"></i>Taken</span>
+            </div>
+            <div class="cabin" data-seatmap-grid role="group" aria-label="Seat map"></div>
+            <p class="seatmap__status" data-seatmap-status aria-live="polite">Choose an aircraft to see its seats.</p>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,22 @@
+@model PointsTransferViewModel
+@{
+    ViewData["Title"] = "Transfer points";
+    ViewData["Subtitle"] = "Move points from one member to another.";
+}
+<form class="form" method="post" action="/admin/points/transfer" asp-antiforgery="true">
+    <section class="form-section">
+        <div class="form-section__intro">
+            <h2>Transfer</h2>
+            <p>The sender must have enough points to cover it.</p>
+        </div>
+        <div class="fields">
+            <field asp-for="SenderId" label="From member" type="select" items="Model.Members" required />
+            <field asp-for="ReceiverId" label="To member" type="select" items="Model.Members" required />
+            <field asp-for="Amount" label="Points" type="number" min="0.01" required step="0.01" />
+        </div>
+    </section>
+    <div class="form-actions">
+        <button class="button" type="submit">Transfer points</button>
+        <a class="button button--quiet" href="/admin/points">Cancel</a>
+    </div>
+</form>
