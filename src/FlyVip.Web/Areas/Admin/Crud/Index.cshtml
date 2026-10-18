@@ -1,0 +1,31 @@
+@model CrudIndex
+@{
+    var crud = Model.Page;
+    var heading = UiNavLabel($"admin/{crud.Slug}", crud.Title + "s");
+    var noun = crud.Title.ToLowerInvariant();
+    ViewData["Title"] = heading;
+    ViewData["Subtitle"] = $"{Model.Rows.Count} {UiPlural(Model.Rows.Count, "record")}";
+}
+@section actions {
+<a class="button" href="/admin/@crud.Slug/new"><icon name="plus" class="icon icon--sm" />Add @noun</a>
+}
+@if (Model.Rows.Count == 0)
+{
+    <partial name="partials/empty" model="@(new EmptyState("Nothing here yet", $"Add the first {noun} to get started.", "inbox", $"/admin/{crud.Slug}/new", $"Add {noun}"))" />
+}
+else
+{
+    <div data-filter>
+        <div class="toolbar">
+            <label class="search">
+                <span class="sr-only">Search @heading.ToLowerInvariant()</span>
+                <icon name="search" class="icon icon--sm" />
+                <input type="search" placeholder="Search @heading.ToLowerInvariant()" data-filter-input autocomplete="off">
+            </label>
+        </div>
+        <partial name="@Model.RowsView" model="Model" />
+        <div hidden data-filter-empty>
+            <partial name="partials/empty" model="@(new EmptyState("No matches", "Try a different search term.", "search"))" />
+        </div>
+    </div>
+}

@@ -1,0 +1,13 @@
+@model PortalBookingViewModel
+@{
+    ViewData["Title"] = "Book a flight";
+    ViewData["Subtitle"] = $"{UiPoints(Model.Balance)} points available";
+}
+<form class="form" method="post" action="/portal/reservations" asp-antiforgery="true">
+    <partial name="partials/booking_fields" />
+    <div class="form-actions">
+        <button class="button" type="submit">Book flight</button>
+        <a class="button button--quiet" href="/portal/reservations">Cancel</a>
+    </div>
+</form>
+@section scripts {<script src="/js/seatmap.js" defer></script>}

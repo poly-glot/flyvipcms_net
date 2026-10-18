@@ -1,0 +1,44 @@
+@model PortalReservations
+@{
+    ViewData["Title"] = "Reservations";
+    ViewData["Subtitle"] = $"{Model.Flights.Count} on your account";
+}
+@section actions {
+@if (Model.CanBook)
+{
+    <a class="button" href="/portal/reservations/new"><icon name="plus" class="icon icon--sm" />Book a flight</a>
+}
+}
+@if (Model.Requests.Count > 0)
+{
+    <section class="page-section">
+        <div class="section-head"><h2>Seat requests on your flights</h2><p>Confirm to share your flight.</p></div>
+        <ul class="rows">
+            @foreach (var request in Model.Requests)
+            {
+                <li class="row row--request">
+                    <avatar first="@(request.FirstName ?? "")" last="@(request.LastName ?? "")" />
+                    <span>
+                        <span class="row__title">@request.FullName</span>
+                        <span class="row__sub">@request.Passengers @UiPlural(request.Passengers, "seat") on @UiDate(request.FlightDate)</span>
+                    </span>
+                    @if (Model.CanBook)
+                    {
+                        <form method="post" action="/portal/reservations/@request.Id/confirm" asp-antiforgery="true">
+                            <button class="button button--small" type="submit"><icon name="check" class="icon icon--sm" />Confirm</button>
+                        </form>
+                    }
+                </li>
+            }
+        </ul>
+    </section>
+}
+
+@if (Model.Flights.Count == 0)
+{
+    <partial name="partials/empty" model='new EmptyState("No reservations yet", "When you book a flight it will appear here with its seats.", "ticket", Model.CanBook ? "/portal/reservations/new" : null, Model.CanBook ? "Book a flight" : null)' />
+}
+else
+{
+    <partial name="partials/flight_list" model="Model.Flights" />
+}

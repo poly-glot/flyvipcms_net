@@ -1,0 +1,24 @@
+@model PortalPoints
+@{
+    ViewData["Title"] = "Points";
+    ViewData["Subtitle"] = "Every credit and charge on the account";
+}
+<section class="balance" aria-label="Points balance">
+    <div class="balance__figure">
+        <span class="balance__label">Available points</span>
+        <strong class="balance__value num">@UiPoints(Model.Balance)</strong>
+    </div>
+    <div class="balance__trend"><sparkline values="Model.Series" width="220" height="64" /></div>
+</section>
+
+<section class="page-section">
+    <div class="section-head"><h2>History</h2></div>
+    @if (Model.Entries.Count == 0)
+    {
+        <partial name="partials/empty" model='new EmptyState("No points movements yet", "Payments and bookings will show up here as they happen.", "star")' />
+    }
+    else
+    {
+        <partial name="partials/ledger" model="Model.Entries" />
+    }
+</section>

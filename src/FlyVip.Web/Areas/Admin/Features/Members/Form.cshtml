@@ -1,0 +1,38 @@
+@model MemberAccountViewModel
+@{
+    var edit = Model as MemberEditViewModel;
+    ViewData["Title"] = edit is null ? "New member" : "Edit member";
+    ViewData["Subtitle"] = edit?.MemberCode ?? "Create the account, then record the joining fee.";
+}
+<form class="form" method="post" action="@(edit is null ? "/admin/members" : $"/admin/members/{edit.UserId}")" asp-antiforgery="true">
+    <section class="form-section">
+        <div class="form-section__intro">
+            <h2>Account</h2>
+            <p>How the member signs in.</p>
+        </div>
+        <div class="fields">
+            <field asp-for="Username" label="Username" required />
+            <field asp-for="Email" label="Email" type="email" required />
+            <field asp-for="Password" label="Password" type="password" hint="@(edit is null ? "At least 12 characters." : "Leave blank to keep the current password.")" autocomplete="new-password" required="@(edit is null)" />
+        </div>
+    </section>
+    @if (Model is NewMemberViewModel member)
+    {
+        <section class="form-section">
+            <div class="form-section__intro">
+                <h2>Membership</h2>
+                <p>Fees are stored with the member and drive every payment.</p>
+            </div>
+            <div class="fields">
+                <field asp-for="@member.PlanId" label="Plan" type="select" items="member.Plans" required />
+                <field asp-for="@member.JoiningFee" label="Joining fee" type="number" min="0" required step="0.01" />
+                <field asp-for="@member.YearlyFee" label="Yearly fee (points)" type="number" min="0.01" required step="0.01" />
+            </div>
+        </section>
+    }
+    <partial name="partials/profile_fields" />
+    <div class="form-actions">
+        <button class="button" type="submit">Save member</button>
+        <a class="button button--quiet" href="@(edit is null ? "/admin/members" : $"/admin/members/{edit.UserId}")">Cancel</a>
+    </div>
+</form>

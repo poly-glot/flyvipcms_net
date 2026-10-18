@@ -1,0 +1,59 @@
+@using System.Globalization
+@model CrudIndex
+@{
+    var options = Model.Columns.ToDictionary(column => column.Name, column => (column.Options ?? []).ToDictionary());
+
+    string Display(CrudField column, CrudRow row)
+    {
+        var cell = row.Values.GetValueOrDefault(column.Name) ?? "";
+
+        return column.Type switch
+        {
+            CrudInputType.Select => options[column.Name].GetValueOrDefault(cell, ""),
+            CrudInputType.Checkbox => cell == "1" ? "Yes" : "No",
+            CrudInputType.Date => cell == "" ? "" : UiDate(DateOnly.ParseExact(cell, "yyyy-MM-dd", CultureInfo.InvariantCulture)),
+            _ => cell,
+        };
+    }
+}
+<div class="table-wrap">
+    <table class="data">
+        <thead>
+            <tr>
+                @foreach (var column in Model.Columns)
+                {
+                    <th class="@(column.Type == CrudInputType.Number ? "num" : null)">@column.Label</th>
+                }
+                <th><span class="sr-only">Actions</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in Model.Rows)
+            {
+                var cells = Model.Columns.Select(column => Display(column, row)).ToList();
+                <tr data-filter-item data-filter-text="@string.Join(' ', cells).ToLowerInvariant()">
+                    @for (var index = 0; index < Model.Columns.Count; index++)
+                    {
+                        var column = Model.Columns[index];
+                        var text = cells[index];
+                        <td class="@(column.Type == CrudInputType.Number ? "num" : null)">
+                            @if (column.Type == CrudInputType.Checkbox)
+                            {
+                                <span class="pill pill--@(text == "Yes" ? "active" : "inactive")">@text</span>
+                            }
+                            else if (index == 0)
+                            {
+                                <a class="strong-link" href="/admin/@Model.Page.Slug/@row.Id/edit">@text</a>
+                            }
+                            else
+                            {
+                                @text
+                            }
+                        </td>
+                    }
+                    <td><partial name="_CrudRowActions.cshtml" model="(Model.Page, row.Id)" /></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

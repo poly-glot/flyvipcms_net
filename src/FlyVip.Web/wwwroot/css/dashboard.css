@@ -1,0 +1,130 @@
+.stats {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    margin: 0 0 var(--space-6);
+    overflow: hidden;
+}
+
+.stats__cell {
+    align-content: space-between;
+    box-shadow: 1px 1px 0 0 var(--line);
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-5);
+}
+
+.stats dt {
+    align-items: center;
+    color: var(--ink-2);
+    display: flex;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    gap: var(--space-2);
+}
+
+.stats dd {
+    font-size: 1.75rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin: 0;
+}
+
+.split {
+    align-items: start;
+    display: grid;
+    gap: var(--space-7);
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+}
+
+.split > .page-section {
+    margin-top: 0;
+}
+
+.stack {
+    display: grid;
+    gap: var(--space-6);
+    min-width: 0;
+}
+
+.stack > .page-section {
+    margin-top: 0;
+}
+
+.balance {
+    align-items: center;
+    background:
+        radial-gradient(90% 140% at 100% 0%, var(--hero-start) 0%, transparent 65%),
+        linear-gradient(160deg, var(--hero-end) 0%, var(--night) 75%);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    color: var(--on-hero);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    justify-content: space-between;
+    padding: var(--space-6);
+}
+
+.balance__figure {
+    display: grid;
+    gap: var(--space-2);
+}
+
+.balance__label {
+    color: var(--on-hero-muted);
+    font-size: 0.875rem;
+}
+
+.balance__value {
+    font-family: var(--font-display);
+    font-size: clamp(2.25rem, 6vw, 3.5rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+
+.balance__meta {
+    align-items: center;
+    color: var(--on-hero-muted);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 0.875rem;
+    gap: var(--space-3);
+}
+
+.balance .pill {
+    background: rgb(255 255 255 / 14%);
+    color: var(--white);
+}
+
+.balance__trend .sparkline__line {
+    stroke: var(--on-hero-accent);
+}
+
+.balance__trend .sparkline__area {
+    fill: var(--on-hero-accent);
+    opacity: 0.16;
+}
+
+.balance + .page-section,
+.balance + .notice,
+.balance + .split {
+    margin-top: var(--space-6);
+}
+
+@media (width <= 1080px) {
+    .split {
+        gap: var(--space-6);
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (width <= 760px) {
+    .balance {
+        padding: var(--space-5);
+    }
+}

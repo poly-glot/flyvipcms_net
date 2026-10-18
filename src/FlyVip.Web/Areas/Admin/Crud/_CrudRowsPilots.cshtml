@@ -1,0 +1,30 @@
+@model CrudIndex
+<ul class="rows pilots">
+    @foreach (var row in Model.Rows)
+    {
+        var first = row.Values["first_name"] ?? "";
+        var last = row.Values["last_name"] ?? "";
+        var name = first + " " + last;
+        var city = row.Values["city"];
+        var email = row.Values["email_primary"];
+        var contract = row.Values["contract_type"] ?? "";
+        <li data-filter-item data-filter-text="@($"{name} {city} {email}".ToLowerInvariant())">
+            <div class="row row--pilot">
+                <avatar first="@first" last="@last" />
+                <a class="row__identity strong-link" href="/admin/@Model.Page.Slug/@row.Id/edit">
+                    <span class="row__title">@name</span>
+                    <span class="row__sub">@(city ?? "No base city")</span>
+                </a>
+                <span class="row__metric">
+                    <span class="row__label">Contact</span>
+                    <span>@(email ?? row.Values["cell_phone"] ?? "—")</span>
+                </span>
+                @if (contract != "")
+                {
+                    <span class="pill pill--accent pill--plain">@contract</span>
+                }
+                <partial name="_CrudRowActions.cshtml" model="(Model.Page, row.Id)" />
+            </div>
+        </li>
+    }
+</ul>

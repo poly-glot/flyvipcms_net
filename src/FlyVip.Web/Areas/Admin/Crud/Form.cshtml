@@ -1,0 +1,40 @@
+@model object
+@{
+    var crud = (CrudPage)ViewData[CrudPage.ViewDataKey]!;
+    var noun = crud.Title.ToLowerInvariant();
+    ViewData["Title"] = $"{(crud.Editing ? "Edit" : "New")} {noun}";
+    ViewData["Subtitle"] = UiNavLabel($"admin/{crud.Slug}", crud.Title + "s");
+}
+<form class="form" method="post" action="@crud.Action" asp-antiforgery="true">
+    <section class="form-section">
+        <div class="form-section__intro">
+            <h2>Essentials</h2>
+            <p>What shows up in the list.</p>
+        </div>
+        <div class="fields">
+            @foreach (var field in crud.Essentials)
+            {
+                <crud-field definition="field" />
+            }
+        </div>
+    </section>
+    @if (crud.Details.Count > 0)
+    {
+        <section class="form-section">
+            <div class="form-section__intro">
+                <h2>More details</h2>
+                <p>Optional information kept on the record.</p>
+            </div>
+            <div class="fields">
+                @foreach (var field in crud.Details)
+                {
+                    <crud-field definition="field" />
+                }
+            </div>
+        </section>
+    }
+    <div class="form-actions">
+        <button class="button" type="submit">Save @noun</button>
+        <a class="button button--quiet" href="/admin/@crud.Slug">Cancel</a>
+    </div>
+</form>

@@ -1,0 +1,70 @@
+@using System.Globalization
+@model AdminDashboard
+@{
+    ViewData["Title"] = "Dashboard";
+    ViewData["Subtitle"] = Model.Today.ToString("dddd d MMMM yyyy", CultureInfo.InvariantCulture);
+}
+@section actions {
+<a class="button button--quiet" href="/admin/members/new"><icon name="plus" class="icon icon--sm" />Add member</a>
+<a class="button" href="/admin/reservations/new"><icon name="plane" class="icon icon--sm" />New reservation</a>
+}
+<dl class="stats">
+    @foreach (var tile in Model.Tiles)
+    {
+        <div class="stats__cell">
+            <dt><icon name="@tile.Icon" class="icon icon--sm" />@tile.Label</dt>
+            <dd class="num">@tile.Count</dd>
+        </div>
+    }
+</dl>
+
+<div class="split">
+    <section class="page-section">
+        <div class="section-head">
+            <h2>Upcoming flights</h2>
+            <a href="/admin/reservations">All reservations</a>
+        </div>
+        @if (Model.Upcoming.Count == 0)
+        {
+            <partial name="partials/empty" model="@(new EmptyState("No flights on the calendar", "Reservations for today and later will appear here.", "plane", "/admin/reservations/new", "New reservation"))" />
+        }
+        else
+        {
+            <div class="flights">
+                @foreach (var card in Model.Upcoming)
+                {
+                    <partial name="partials/flight_card" model="card" />
+                }
+            </div>
+        }
+    </section>
+
+    <section class="page-section">
+        <div class="section-head">
+            <h2>Overdue payments</h2>
+            <p>@Model.Overdue.Count @UiPlural(Model.Overdue.Count, "member")</p>
+        </div>
+        @if (Model.Overdue.Count == 0)
+        {
+            <partial name="partials/empty" model="@(new EmptyState("Nobody is overdue", "Every active member is paid up.", "check"))" />
+        }
+        else
+        {
+            <ul class="rows">
+                @foreach (var member in Model.Overdue)
+                {
+                    <li>
+                        <a class="row row--person" href="/admin/payments/new?user_id=@member.UserId">
+                            <avatar first="@member.FirstName" last="@member.LastName" />
+                            <span>
+                                <span class="row__title">@member.FullName</span>
+                                <span class="row__sub">@member.MemberCode, due @UiDate(member.NextDueOn)</span>
+                            </span>
+                            <span class="pill pill--overdue pill--plain">@member.DaysOverdue @UiPlural(member.DaysOverdue, "day")</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+</div>

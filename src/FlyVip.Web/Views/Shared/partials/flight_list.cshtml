@@ -1,0 +1,19 @@
+@model FlightList
+@{
+    var groups = new[] { ("Upcoming", Model.Upcoming), ("Earlier", Model.Earlier) };
+}
+@foreach (var (label, group) in groups)
+{
+    if (group.Count > 0)
+    {
+        <section class="page-section">
+            <div class="section-head"><h2>@label</h2><p>@group.Count @UiPlural(group.Count, "flight")</p></div>
+            <div class="flights">
+                @foreach (var card in group)
+                {
+                    <partial name="partials/flight_card" model="card" />
+                }
+            </div>
+        </section>
+    }
+}

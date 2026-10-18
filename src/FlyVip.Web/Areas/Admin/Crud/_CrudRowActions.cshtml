@@ -1,0 +1,10 @@
+@model (CrudPage Page, int Id)
+@{
+    var noun = Model.Page.Title.ToLowerInvariant();
+}
+<div class="data__actions">
+    <a class="icon-button" href="/admin/@Model.Page.Slug/@Model.Id/edit" aria-label="Edit @noun" title="Edit"><icon name="pencil" class="icon icon--sm" /></a>
+    <form method="post" action="/admin/@Model.Page.Slug/@Model.Id/delete" data-confirm="This cannot be undone." data-confirm-title="Delete this @(noun)?" data-confirm-action="Delete" asp-antiforgery="true">
+        <button class="icon-button icon-button--danger" type="submit" aria-label="Delete @noun" title="Delete"><icon name="trash" class="icon icon--sm" /></button>
+    </form>
+</div>

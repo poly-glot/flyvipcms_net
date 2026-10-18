@@ -1,0 +1,67 @@
+@using FlyVip.Web.Data
+@using FlyVip.Web.Data.Entities
+@model MembersIndex
+@{
+    ViewData["Title"] = "Members";
+    ViewData["Subtitle"] = $"{Model.Rows.Count} in the club";
+}
+@section actions {
+<a class="button" href="/admin/members/new"><icon name="plus" class="icon icon--sm" />Add member</a>
+}
+@if (Model.Rows.Count == 0)
+{
+    <partial name="partials/empty" model='new EmptyState("No members yet", "Add your first member, then record the joining fee to activate the membership.", "users", "/admin/members/new", "Add member")' />
+}
+else
+{
+    <div data-filter>
+        <div class="toolbar">
+            <label class="search">
+                <span class="sr-only">Search members</span>
+                <icon name="search" class="icon icon--sm" />
+                <input type="search" placeholder="Search name, code or email" data-filter-input autocomplete="off">
+            </label>
+            <div class="chips" role="group" aria-label="Filter by status">
+                <button class="chip" type="button" data-filter-chip="" aria-pressed="true">All<small>@Model.Rows.Count</small></button>
+                @foreach (var status in new[] { MemberStatus.Active, MemberStatus.Inactive, MemberStatus.Banned })
+                {
+                    <button class="chip" type="button" data-filter-chip="@EnumText.Of(status)" aria-pressed="false">@status<small>@Model.StatusCounts.GetValueOrDefault(status)</small></button>
+                }
+            </div>
+        </div>
+
+        <ul class="rows members">
+            @foreach (var member in Model.Rows)
+            {
+                var name = member.FullName;
+                var status = EnumText.Of(member.Status);
+                <li data-filter-item data-filter-status="@status" data-filter-text="@($"{name} {member.MemberCode} {member.Email}".ToLowerInvariant())">
+                    <a class="row row--member" href="/admin/members/@member.UserId">
+                        <avatar first="@member.FirstName" last="@member.LastName" />
+                        <span class="row__identity">
+                            <span class="row__title">@name</span>
+                            <span class="row__sub">@member.MemberCode, @member.Email</span>
+                        </span>
+                        <span class="row__metric row__metric--plan">
+                            <span class="row__label">Plan</span>
+                            <span>@member.PlanName</span>
+                        </span>
+                        <span class="row__metric">
+                            <span class="row__label">Points</span>
+                            <span class="num">@UiPoints(member.Balance)</span>
+                        </span>
+                        <span class="row__metric row__metric--due@(member.IsOverdue ? " row__metric--late" : "")">
+                            <span class="row__label">Next due</span>
+                            <span>@UiDate(member.NextDueOn)</span>
+                        </span>
+                        <span class="pill pill--@status">@status</span>
+                        <icon name="chevron" class="icon icon--sm row__chevron" />
+                    </a>
+                </li>
+            }
+        </ul>
+        <div hidden data-filter-empty>
+            <partial name="partials/empty" model='new EmptyState("No members match", "Try a different name or clear the status filter.", "search")' />
+        </div>
+    </div>
+}

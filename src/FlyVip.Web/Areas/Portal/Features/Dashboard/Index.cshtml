@@ -1,0 +1,98 @@
+@using FlyVip.Web.Data
+@model PortalDashboard
+@{
+    var member = Model.Member;
+    var primary = member.IsPrimary;
+    var status = EnumText.Of(member.Status);
+    ViewData["Title"] = "Welcome, " + member.FirstName;
+    ViewData["Subtitle"] = member.MemberCode + ", " + (member.PlanName ?? "Family contact");
+}
+@section actions {
+@if (primary)
+{
+    <a class="button" href="/portal/reservations/new"><icon name="plane" class="icon icon--sm" />Book a flight</a>
+}
+}
+<section class="balance" aria-label="Points balance">
+    <div class="balance__figure">
+        <span class="balance__label">Available points</span>
+        <strong class="balance__value num">@UiPoints(Model.Balance)</strong>
+        <span class="balance__meta">
+            <span class="pill pill--@status">@status</span>
+            @if (primary)
+            {
+                <span>Next payment due @UiDate(member.NextDueOn)</span>
+            }
+        </span>
+    </div>
+    <div class="balance__trend"><sparkline values="Model.Series" width="220" height="64" /></div>
+</section>
+
+@if (!primary)
+{
+    <p class="notice"><icon name="info" class="icon icon--sm" />You have view-only access to the points and flights of your primary member.</p>
+}
+
+<div class="split">
+    <section class="page-section">
+        <div class="section-head">
+            <h2>Next flights</h2>
+            <a href="/portal/reservations">All reservations</a>
+        </div>
+        @if (Model.Upcoming.Count == 0)
+        {
+            <partial name="partials/empty" model='new EmptyState("No flights booked", "Your upcoming flights will appear here.", "plane", primary ? "/portal/reservations/new" : null, primary ? "Book a flight" : null)' />
+        }
+        else
+        {
+            <div class="flights">
+                @foreach (var card in Model.Upcoming)
+                {
+                    <partial name="partials/flight_card" model="card" />
+                }
+            </div>
+        }
+    </section>
+
+    <div class="stack">
+        @if (Model.Family.Count > 0)
+        {
+            <section class="page-section">
+                <div class="section-head"><h2>Family and contacts</h2></div>
+                <ul class="rows">
+                    @foreach (var person in Model.Family)
+                    {
+                        <li class="row row--person">
+                            <avatar first="@person.FirstName" last="@person.LastName" />
+                            <span>
+                                <span class="row__title">@person.FullName</span>
+                                <span class="row__sub">@person.MemberCode</span>
+                            </span>
+                            <span class="pill pill--accent pill--plain">@person.ContactType</span>
+                        </li>
+                    }
+                </ul>
+            </section>
+        }
+
+        <section class="page-section">
+            <div class="section-head"><h2>Recent activity</h2></div>
+            @if (Model.Activity.Count == 0)
+            {
+                <partial name="partials/empty" model='new EmptyState("No activity yet", "Bookings and confirmations will be listed here.", "clock")' />
+            }
+            else
+            {
+                <ol class="timeline">
+                    @foreach (var item in Model.Activity)
+                    {
+                        <li>
+                            <span>@item.Description</span>
+                            <time class="muted" datetime="@item.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)">@UiDate(item.CreatedAt, "d MMM yyyy, HH:mm")</time>
+                        </li>
+                    }
+                </ol>
+            }
+        </section>
+    </div>
+</div>

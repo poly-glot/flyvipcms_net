@@ -1,0 +1,38 @@
+services:
+  app:
+    command: sleep infinity
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: Server=db;Port=3306;Database=flyvip;User Id=root;Password=FlyVip!Dev2026
+      ConnectionStrings__Test: Server=db;Port=3306;Database=flyvip_test;User Id=root;Password=FlyVip!Dev2026
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+    image: mcr.microsoft.com/devcontainers/dotnet:10.0
+    ports:
+      - "127.0.0.1:8091:8080"
+    volumes:
+      - ..:/workspaces/flyvipcms_net:cached
+      - node-modules:/workspaces/flyvipcms_net/node_modules
+
+  db:
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: FlyVip!Dev2026
+    healthcheck:
+      interval: 5s
+      retries: 30
+      start_period: 30s
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-pFlyVip!Dev2026", "--silent"]
+      timeout: 5s
+    image: mysql:9
+    ports:
+      - "127.0.0.1:13306:3306"
+    restart: unless-stopped
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:
+  node-modules:

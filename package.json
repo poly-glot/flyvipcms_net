@@ -1,0 +1,34 @@
+{
+  "name": "flyvipcms-net",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "format": "prettier --write src/FlyVip.Web/wwwroot/css src/FlyVip.Web/wwwroot/js tests/E2E tools playwright.config.ts eslint.config.js",
+    "format:check": "prettier --check src/FlyVip.Web/wwwroot/css src/FlyVip.Web/wwwroot/js tests/E2E tools playwright.config.ts eslint.config.js",
+    "lint": "npm run format:check && npm run lint:js && npm run lint:css && npm run lint:templates",
+    "lint:css": "stylelint 'src/FlyVip.Web/wwwroot/css/**/*.css'",
+    "lint:fix": "eslint --fix src/FlyVip.Web/wwwroot/js tools && stylelint --fix 'src/FlyVip.Web/wwwroot/css/**/*.css' && npm run format",
+    "lint:js": "eslint src/FlyVip.Web/wwwroot/js tests/E2E tools playwright.config.ts eslint.config.js",
+    "lint:templates": "node tools/check-templates.mjs",
+    "test:e2e": "E2E_SERVE=1 playwright test --project=chromium",
+    "test:e2e:running": "playwright test --project=chromium",
+    "test:visual": "E2E_SERVE=1 playwright test --project=visual",
+    "test:visual:running": "playwright test --project=visual"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.9",
+    "stylelint": "^17.16.0",
+    "stylelint-config-standard": "^40.0.0",
+    "stylelint-order": "^8.1.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.0"
+  }
+}

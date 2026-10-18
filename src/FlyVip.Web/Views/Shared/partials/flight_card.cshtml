@@ -1,0 +1,66 @@
+@using System.Globalization
+@using FlyVip.Web.Data
+@model FlightCardModel
+@{
+    var listing = Model.Listing;
+    var status = EnumText.Of(listing.Status);
+    var complete = listing.IsComplete;
+    var seatsHeld = listing.SeatsHeld;
+    var linked = Model.Href != "";
+    var actions = Model.Actions;
+}
+<article class="flight@(listing.IsCancelled ? " flight--cancelled" : "")">
+    <time class="flight__date" datetime="@listing.FlightDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">
+        <span class="flight__day">@listing.FlightDate.Day</span>
+        <span class="flight__month">@listing.FlightDate.ToString("MMM", CultureInfo.InvariantCulture)</span>
+    </time>
+    <div class="flight__main">
+        <h3 class="flight__route">
+            @if (linked)
+            {
+                <a class="flight__link" href="@Model.Href">
+                    <span class="flight__place">@listing.FromName</span>
+                    <span class="flight__path" aria-hidden="true"><icon name="plane" class="icon icon--sm" /></span>
+                    <span class="sr-only">to</span>
+                    <span class="flight__place">@listing.ToName</span>
+                </a>
+            }
+            else
+            {
+                <span class="flight__link">
+                    <span class="flight__place">@listing.FromName</span>
+                    <span class="flight__path" aria-hidden="true"><icon name="plane" class="icon icon--sm" /></span>
+                    <span class="sr-only">to</span>
+                    <span class="flight__place">@listing.ToName</span>
+                </span>
+            }
+        </h3>
+        <p class="flight__meta">
+            <span><icon name="plane" class="icon icon--sm" />@listing.AircraftName</span>
+            <span>@(complete ? "Whole aircraft" : "Shared flight")@(listing.ParentReservationId is { } parent ? $" (joined #{parent})" : "")</span>
+            @if (listing.FirstName is not null)
+            {
+                <span><icon name="user" class="icon icon--sm" />@listing.FullName</span>
+            }
+        </p>
+    </div>
+    <div class="flight__side">
+        <span class="pill pill--@status">@status</span>
+        @if (listing.Capacity > 0)
+        {
+            <pips filled="seatsHeld" capacity="listing.Capacity" />
+        }
+        <span class="flight__cost num">@UiPoints(listing.Amount) pts</span>
+    </div>
+    @if (actions.Count > 0)
+    {
+        <div class="flight__actions">
+            @foreach (var action in actions)
+            {
+                <form method="post" action="@action.Url" data-confirm="@action.Confirm" data-confirm-title="@action.Title" data-confirm-action="@(action.Confirm is null ? null : action.Label)" asp-antiforgery="true">
+                    <button class="button button--small @(action.Confirm is null ? "" : "button--danger")" type="submit">@action.Label</button>
+                </form>
+            }
+        </div>
+    }
+</article>

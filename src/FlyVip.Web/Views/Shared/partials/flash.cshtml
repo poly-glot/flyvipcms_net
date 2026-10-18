@@ -1,0 +1,22 @@
+@{
+    var toasts = new List<(string Tone, string Message)>();
+
+    foreach (var (key, tone) in new[] { (FlashKey.Message, "ok"), (FlashKey.Error, "bad") })
+    {
+        if (TempData[key] is string { Length: > 0 } message)
+        {
+            toasts.Add((tone, message));
+        }
+    }
+}
+<div class="toasts" data-toasts aria-live="polite">
+    @foreach (var (tone, message) in toasts)
+    {
+        var bad = tone == "bad";
+        <div class="toast toast--@tone" role="@(bad ? "alert" : "status")" data-toast data-sticky="@(bad ? "true" : "false")">
+            <icon name="@(bad ? "alert" : "check")" />
+            <p>@message</p>
+            <button type="button" data-toast-close aria-label="Dismiss"><icon name="x" class="icon icon--sm" /></button>
+        </div>
+    }
+</div>
