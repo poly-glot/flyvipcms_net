@@ -58,7 +58,7 @@ src/FlyVip.Web/
 
 ## MySQL mapping (back to the CI4 engine, EF conventions)
 
-- Conventional EF schema: PascalCase tables named after the `DbSet`s (`Members`, `PointsLedger`, `ReservationSeats`, …) and PascalCase columns (`Member.UserId` → `UserId`), plus a `Users` table replacing Shield's. One `InitialCreate` migration.
+- Conventional EF schema: PascalCase tables named after the `DbSet`s (`Members`, `PointsLedger`, `ReservationSeats`, …) and PascalCase columns (`Member.UserId` → `UserId`), plus a `Users` table replacing Shield's. `InitialCreate` is the first release's schema; every later change is a new migration (`dotnet ef migrations add <Name> --project src/FlyVip.Web --output-dir Data/Migrations`), and a migration that has reached production is never edited or regenerated.
 - Navigations are used wherever they simplify a query (`Member.User`, `AppUser.Profile`, `Reservation.Aircraft`/`Route`/`Seats`, …). `AppUser.Member` and `AppUser.Profile` are optional, so going from a user to its member or profile is a LEFT JOIN: admins have neither.
 - MySQL `ENUM` → C# enum stored as the exact lowercase snake_case text (`'active'`, `'partial'`, `'transfer_in'`, …) with a check constraint (`LowercaseEnum` in `AppDbContext`). `EnumText.Of` produces the same text for pill labels.
 - `SELECT Id FROM Users WHERE Id = … FOR UPDATE` raw SQL inside the service's transaction. `Atomic.Run` opens transactions at `READ COMMITTED`: under InnoDB's default `REPEATABLE READ` the snapshot is taken at the transaction's first plain read, so a balance read after the lock could be stale and two bookings could overdraw.
@@ -145,7 +145,9 @@ src/FlyVip.Web/
 **Migrations run before traffic moves.**
 
 - The deploy job updates and executes `flyvipcms-net-migrate` (args `["migrate"]`, `max_retries = 0`) before it deploys the candidate revision. The service runs with `SKIP_MIGRATIONS=1`.
-- The previous revision keeps serving on the migrated schema, so every migration must stay compatible with the previous release.
+- The previous revision keeps serving on the migrated schema, so every migration must stay compatible with the previous release: add tables and nullable or defaulted columns in one release; rename, drop or tighten a column over two.
+- CI's e2e job also tests each change as an upgrade: it builds the previous release (the PR base, or the commit before the push), migrates and seeds a database with it, migrates that database with the new image and smokes the new code on it. An empty database alone would never catch a migration that fails on existing rows.
+- `Microsoft.EntityFrameworkCore.Migrations` logs at Information, so every migrate-job execution records "Applying migration '…'" or "No migrations were applied" in Cloud Logging.
 
 **Deploy flow.**
 
@@ -210,3 +212,7 @@ src/FlyVip.Web/
 ## Deliberately not ported
 
 Whatever the CI4 rebuild already dropped (self-registration, friends/groups, `/cron`, avatars, round-trip booking) stays dropped. Additionally not ported here: the database-backed session store (`SessionCookieJar` carries the cookies inside `__session` instead), and PHP's `Money` string arithmetic (C# `decimal` is exact; `MoneyTest` has no equivalent).
+
+## Additions beyond the CI4 app
+
+- Profile `HeardAboutUs` ("Where did you hear about us?", optional free text, at most 255 characters, migration `AddProfileHeardAboutUs`) sits in the Preferences section of the shared `partials/profile_fields`, so the portal profile and the admin member forms both carry it.

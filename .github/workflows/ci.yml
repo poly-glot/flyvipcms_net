@@ -89,6 +89,41 @@ jobs:
           echo "compressed image bytes: $size, budget bytes: $IMAGE_BUDGET_BYTES"
           [ "$size" -le "$IMAGE_BUDGET_BYTES" ]
 
+      - env:
+          PREVIOUS: ${{ github.event.pull_request.base.sha || github.event.before }}
+        id: previous
+        name: Check out the previous release
+        run: |
+          if [ -n "${PREVIOUS//0/}" ] && git fetch --depth=1 origin "$PREVIOUS" && git worktree add "$RUNNER_TEMP/previous" FETCH_HEAD; then
+            echo "path=$RUNNER_TEMP/previous" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::No previous release to upgrade from"
+          fi
+
+      - if: steps.previous.outputs.path
+        uses: docker/build-push-action@v7
+        with:
+          cache-from: type=gha
+          context: ${{ steps.previous.outputs.path }}
+          load: true
+          tags: flyvipcms-net:previous
+
+      - env:
+          DB_NAME: flyvip_upgrade
+        if: steps.previous.outputs.path
+        name: Upgrade a database the previous release migrated and seeded
+        run: |
+          $RUN_APP --rm flyvipcms-net:previous migrate
+          $RUN_APP --env ASPNETCORE_ENVIRONMENT=Development --rm flyvipcms-net:previous seed
+          $RUN_APP --rm flyvipcms-net:ci migrate
+          trap 'docker logs upgraded >> app.log 2>&1; docker rm --force upgraded > /dev/null' EXIT
+          $RUN_APP --detach --env ASPNETCORE_HTTP_PORTS=8081 --env SKIP_MIGRATIONS=1 --name upgraded flyvipcms-net:ci
+          for _ in $(seq 1 60); do
+            curl --fail --silent --output /dev/null http://127.0.0.1:8081/health && break
+            sleep 1
+          done
+          BASE_URL=http://127.0.0.1:8081 bash tests/smoke.sh
+
       - name: Migrate and seed the database
         run: |
           $RUN_APP --rm flyvipcms-net:ci migrate

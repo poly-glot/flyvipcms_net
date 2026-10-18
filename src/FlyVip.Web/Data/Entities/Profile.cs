@@ -65,6 +65,9 @@ public sealed class Profile
     [DeleteBehavior(DeleteBehavior.SetNull)]
     public AirRoute? FavouriteRoute { get; set; }
 
+    [MaxLength(255)]
+    public string? HeardAboutUs { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }

@@ -86,6 +86,11 @@ public class ProfileViewModel
     [PositiveWholeNumber]
     public string? FavouriteRouteId { get; set; }
 
+    [FromForm(Name = "heard_about_us")]
+    [Display(Name = "heard_about_us")]
+    [MaxCharacters(255)]
+    public string? HeardAboutUs { get; set; }
+
     [BindNever]
     public ProfileChoices Choices { get; private set; } = new([], [], []);
 
@@ -109,6 +114,7 @@ public class ProfileViewModel
         PassportIssuedOn = profile.PassportIssuedOn;
         PassportDueOn = profile.PassportDueOn;
         FavouriteRouteId = FormValues.Text(profile.FavouriteRouteId);
+        HeardAboutUs = profile.HeardAboutUs;
     }
 
     public virtual Profile ToProfile() => new()
@@ -129,6 +135,7 @@ public class ProfileViewModel
         PassportIssuedOn = PassportIssuedOn,
         PassportDueOn = PassportDueOn,
         FavouriteRouteId = FavouriteRouteId.OptionalId(),
+        HeardAboutUs = HeardAboutUs,
     };
 }
 

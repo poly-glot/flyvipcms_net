@@ -45,6 +45,20 @@ public sealed class PortalFlowsTest(DatabaseFixture database) : DatabaseTestCase
     }
 
     [Fact]
+    public async Task MemberRecordsWhereTheyHeardAboutUs()
+    {
+        var mine = await Member();
+        using var client = await ActingAsMember(mine);
+
+        using var response = await client.PostAsync("/portal/profile", Form(("heard_about_us", "A friend at the aero club")), TestContext.Current.CancellationToken);
+        var html = await client.GetStringAsync("/portal/profile", TestContext.Current.CancellationToken);
+
+        Assert.Equal("/portal/profile", response.Headers.Location?.OriginalString);
+        Assert.Equal("A friend at the aero club", await Db.Profiles.AsNoTracking().Where(p => p.UserId == mine).Select(p => p.HeardAboutUs).SingleAsync(TestContext.Current.CancellationToken));
+        Assert.Contains("value=\"A friend at the aero club\"", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task SubMemberCannotEditProfile()
     {
         var parent = await Member(planId: 2);

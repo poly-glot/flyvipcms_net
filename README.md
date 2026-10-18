@@ -55,7 +55,7 @@ The production image is trimmed and self-contained on `runtime-deps:10.0-noble-c
 CI (`.github/workflows/ci.yml`):
 
 - `quality`: `quality.sh` against a MySQL 9 service.
-- `e2e`: builds the production image and enforces the 28 MB compressed budget; migrates and seeds over TLS with the Cloud Run `DB_*` env; runs the smoke, including a session check across a brand-new container; runs Playwright against the container; fails on any `Exception` in the container log; on `main`, hands the tested image to `deploy`.
+- `e2e`: builds the production image and enforces the 28 MB compressed budget; migrates and seeds over TLS with the Cloud Run `DB_*` env; runs the smoke, including a session check across a brand-new container; runs Playwright against the container; fails on any `Exception` in the container log; upgrades a database migrated and seeded by the previous release and smokes it; on `main`, hands the tested image to `deploy`.
 - `visual`: non-blocking.
 - On `main`, `deploy` follows (see Deploy).
 
