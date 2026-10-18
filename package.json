@@ -19,7 +19,7 @@
     "test:visual:running": "playwright test --project=visual"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.13.0",
+    "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.63.0",
     "eslint": "^10.12.0",
